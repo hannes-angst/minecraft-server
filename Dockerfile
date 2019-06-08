@@ -43,13 +43,12 @@ RUN addgroup -g ${PGID} minecraft && \
 
 # Sets working directory for the CMD instruction (also works for RUN, ENTRYPOINT commands)
 # Create mount point, and mark it as holding externally mounted volume
-WORKDIR /data
-VOLUME /data
 
 #
 # Use the created space to work at
 #
-WORKDIR /home/minecraft
+WORKDIR /data
+VOLUME /data
 
 #
 # Be the previously created user
