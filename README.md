@@ -2,7 +2,7 @@
 
 ## Feature
 
-- Fetch latest minecraft server jar with curl and yq
+- Fetch latest minecraft server jar with curl and jq
 - Based on alpine
 - Uses none-root user
 - Uses openJDK 1.8 headless (aka slim)
