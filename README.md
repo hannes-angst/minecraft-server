@@ -10,5 +10,6 @@ Feature:
 
 #Build
 
-    $ docker build . --no-cache -t hangst/minecraft-server
-    $ docker push hangst/minecraft-server
+    $ docker build . --no-cache -t hangst/minecraft-server:<version>
+    $ docker run -v $(pwd)/data:/data hangst/minecraft-server:<version>
+    $ docker push hangst/minecraft-server:<version>

@@ -6,11 +6,6 @@ FROM alpine:3.9
 
 MAINTAINER Hannes Angst <hannes@angst.email>
 
-#
-# It's always good to define this with java.
-#
-VOLUME /tmp
-
 ENV MAJONG_MANIFEST https://launchermeta.mojang.com/mc/game/version_manifest.json
 
 
@@ -45,10 +40,19 @@ RUN addgroup -g ${PGID} minecraft && \
 # Create mount point, and mark it as holding externally mounted volume
 
 #
+# It's always good to define this with java.
+#
+VOLUME /tmp
+#
 # Use the created space to work at
 #
-WORKDIR /data
 VOLUME /data
+
+#
+# Start folder
+# minecraft writes to this folder.
+#
+WORKDIR /data
 
 #
 # Be the previously created user
@@ -61,15 +65,21 @@ EXPOSE 25565
 
 #Automatically accept Minecraft EULA, and start Minecraft server
 CMD \
-  echo eula=true > /data/eula.txt && \
-  java -jar \
-    \
-    -XX:+UnlockExperimentalVMOptions \
-    -XX:+UseCGroupMemoryLimitForHeap \
-    -XX:MaxRAMFraction=1 \
-    -XX:+UseConcMarkSweepGC \
-    \
-    -Djava.awt.headless=true \
-    -Djava.security.egd=file:/dev/./urandom \
-    \
-    /home/minecraft/server.jar
+  echo eula=true >eula.txt && \
+  java -server \
+  -Xmx2048m -Xms2048m -Xmn1024m \
+  -XX:+UnlockExperimentalVMOptions \
+  -XX:+UseCGroupMemoryLimitForHeap \
+  -XX:MaxRAMFraction=1 \
+  -XX:+UseConcMarkSweepGC \
+  -XX:+UseConcMarkSweepGC \
+  -XX:+CMSIncrementalPacing \
+  -XX:+DisableExplicitGC \
+  -XX:+UseAdaptiveGCBoundary \
+  -XX:MaxGCPauseMillis=500 \
+  -XX:-UseGCOverheadLimit \
+  -XX:ParallelGCThreads=2 \
+  -XX:+AggressiveOpts \
+  -Djava.awt.headless=true \
+  -Djava.security.egd=file:/dev/./urandom \
+  -jar /home/minecraft/server.jar nogui
