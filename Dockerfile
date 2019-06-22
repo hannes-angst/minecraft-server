@@ -1,4 +1,4 @@
-FROM alpine:3.9
+FROM alpine:3.10
 
 MAINTAINER Hannes Angst <hannes@angst.email>
 
@@ -17,9 +17,12 @@ RUN addgroup -g ${PGID} minecraft && \
     mkdir -p /home/minecraft &&  \
     apk update  --no-cache &&  \
     apk upgrade --no-cache && \
-    apk add --no-cache curl jq bash nss openjdk8-jre-base && \
+    apk add --no-cache curl jq bash openjdk11-jre-headless && \
     curl -sL "${MAJONG_MANIFEST}" -o manifest.json && \
     export MC_VERSION=`cat manifest.json | jq -r ".latest.release"` && \
+    echo "*****************************" && \
+    echo "Minecraft version: ${MC_VERSION}" && \
+    echo "*****************************" && \
     export MC_ASSET=`cat manifest.json | jq -r '.versions[] | select(.id == "'${MC_VERSION}'" ) | .url '`   && \
     curl -sL "${MC_ASSET}" -o assets.json && \
     export MC_SERVER=`cat assets.json | jq -r ' .downloads.server.url '` && \
@@ -28,12 +31,6 @@ RUN addgroup -g ${PGID} minecraft && \
     apk del curl jq bash  && \
     rm -rf /tmp/* /var/cache/apk/* && \
     chown -R minecraft:minecraft /home/minecraft
-
-# We do the above in a single line to reduce the number of layers in our container
-
-
-# Sets working directory for the CMD instruction (also works for RUN, ENTRYPOINT commands)
-# Create mount point, and mark it as holding externally mounted volume
 
 #
 # It's always good to define this with java.
@@ -64,18 +61,11 @@ CMD \
   echo eula=true >eula.txt && \
   java -server \
   -Xmx2048m -Xms2048m -Xmn1024m \
-  -XX:+UnlockExperimentalVMOptions \
-  -XX:+UseCGroupMemoryLimitForHeap \
-  -XX:MaxRAMFraction=1 \
-  -XX:+UseConcMarkSweepGC \
-  -XX:+UseConcMarkSweepGC \
-  -XX:+CMSIncrementalPacing \
   -XX:+DisableExplicitGC \
   -XX:+UseAdaptiveGCBoundary \
   -XX:MaxGCPauseMillis=500 \
   -XX:-UseGCOverheadLimit \
   -XX:ParallelGCThreads=2 \
-  -XX:+AggressiveOpts \
   -Djava.awt.headless=true \
   -Djava.security.egd=file:/dev/./urandom \
   -jar /home/minecraft/server.jar nogui
