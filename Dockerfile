@@ -1,6 +1,6 @@
-FROM alpine:3.10
+FROM adoptopenjdk/openjdk12-openj9:alpine-jre
 
-MAINTAINER Hannes Angst <hannes@angst.email>
+LABEL maintainer="Hannes Angst <hannes@angst.email>"
 
 ENV MAJONG_MANIFEST https://launchermeta.mojang.com/mc/game/version_manifest.json
 
@@ -17,7 +17,7 @@ RUN addgroup -g ${PGID} minecraft && \
     mkdir -p /home/minecraft &&  \
     apk update  --no-cache &&  \
     apk upgrade --no-cache && \
-    apk add --no-cache curl jq bash openjdk11-jre-headless && \
+    apk add --no-cache curl jq bash && \
     curl -sL "${MAJONG_MANIFEST}" -o manifest.json && \
     export MC_VERSION=`cat manifest.json | jq -r ".latest.release"` && \
     echo "*****************************" && \
@@ -59,13 +59,9 @@ EXPOSE 25565
 #Automatically accept Minecraft EULA, and start Minecraft server
 CMD \
   echo eula=true >eula.txt && \
-  java -server \
-  -Xmx2048m -Xms2048m -Xmn1024m \
-  -XX:+DisableExplicitGC \
-  -XX:+UseAdaptiveGCBoundary \
-  -XX:MaxGCPauseMillis=500 \
-  -XX:-UseGCOverheadLimit \
-  -XX:ParallelGCThreads=2 \
+  java \
   -Djava.awt.headless=true \
-  -Djava.security.egd=file:/dev/./urandom \
+  -XX:+UseContainerSupport \
+  -XX:+IdleTuningCompactOnIdle \
+  -XX:+IdleTuningGcOnIdle \
   -jar /home/minecraft/server.jar nogui
